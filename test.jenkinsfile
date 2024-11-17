@@ -46,7 +46,7 @@ pipeline {
             }
         }
 
-        stage('cleanup'){
+        stage('post cleanup'){
             steps{
                 sh 'docker rmi $(docker images -q)'
                 sh 'rm -rf *'
