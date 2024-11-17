@@ -1,16 +1,56 @@
 pipeline {
     agent any
+
+     tools{
+        nodejs "testenvnode"
+    }
   
     stages {
         stage ('cleanup'){
             steps{
-                // TODO
+                sh 'rm -rf *'
             }
         }
         stage('fetch app code') {
             steps {
                 // Get some code from a GitHub repository
                 git branch: 'main', url: 'https://github.com/PXL-2TIN-DevOps-Resources/calculator-app-finished.git'
+            }
+        }
+        
+        stage('Install dependencies'){
+            steps{
+                sh 'npm install'
+            }
+        }
+
+        stage('Build artifact'){
+            steps{
+                sh 'docker build -t calculator-app .'
+            }
+        }
+
+        stage('Push artifact'){
+            steps{
+                sh 'docker login -u anasra -p dckr_pat_PgNyWyyF8WxlOqe5aLSDHAk9rLI'
+                sh 'docker tag calculator-app anasra/calculator-app:latest'
+                sh 'docker push anasra/calculator-app:latest'
+            }
+        }
+
+        stage('deployment'){
+            steps{
+                sh 'docker rm -f $(docker ps -aq)'
+                sh 'docker pull anasra/calculator:latest'
+                sh 'docker run -d --name test-calculator -p 3000:3000 calculator-app'
+            }
+        }
+
+        stage('cleanup'){
+            steps{
+                sh 'docker rm -f $(docker ps -aq)'
+                sh 'docker rmi $(docker images -q)'
+                sh 'rm -rf *'
             }
         }
     }
