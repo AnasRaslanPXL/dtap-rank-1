@@ -48,7 +48,7 @@ pipeline {
                         echo "No containers to remove."
                     }
                 }
-                sh 'docker pull anasra/calculator:latest'
+                sh 'docker pull anasra/calculator-app:latest'
                 sh 'docker run -d --name test-calculator -p 3000:3000 calculator-app:latest'
             }
         }
