@@ -65,8 +65,7 @@ pipeline {
                     fi'''
                 }
                 sh 'docker run -d -p 3000:3000 --name calculator-app anasra/calculator-app:latest'
-                sh 'sleep 60'
-                sh 'docker stop calculator-app && docker rm -f calculator-app'
+                sh 'sleep 30'
             }
         }
 
