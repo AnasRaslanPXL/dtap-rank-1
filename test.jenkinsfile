@@ -50,8 +50,11 @@ pipeline {
         stage('deployment') {
             steps {
                 sh 'docker rm -f $(docker ps -aq)'
-                def image = docker.image(environment.DOCKER_IMAGE_NAME)
-                image.run('-p 3000:3000 --name calculator-app')
+                script{
+                    def image = docker.image(environment.DOCKER_IMAGE_NAME)
+                    image.run('-p 3000:3000 --name calculator-app')
+                }
+                
             }
         }
 
