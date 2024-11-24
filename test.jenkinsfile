@@ -1,14 +1,19 @@
 pipeline {
     agent any
-
-     tools{
+    def app
+    environment {
+        DOCKER_CREDENTIALS = 'myDockerCreds' // Credentials van Docker hub
+        DOCKER_IMAGE_NAME = 'anasra/calculator-app'
+    }
+    tools {
         nodejs "testenvnode"
     }
   
     stages {
-        stage ('cleanup'){
-            steps{
+        stage('cleanup') {
+            steps {
                 sh 'rm -rf *'
+                sh 'rm -rf .[!.]* ..?*'
             }
         }
         stage('fetch app code') {
@@ -17,45 +22,45 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/PXL-2TIN-DevOps-Resources/calculator-app-finished.git'
             }
         }
-        
-        stage('Install dependencies'){
-            steps{
+        stage('Install dependencies') {
+            steps {
                 sh 'npm install'
             }
         }
 
-        stage('Build artifact'){
-            steps{
-                sh 'docker build -t calculator-app .'
+        stage('Build artifact') {
+            steps {
+                script {
+                    app = docker.build("${DOCKER_IMAGE_NAME}")
+                }
             }
         }
 
-        stage('Push artifact'){
-            steps{
-                sh 'docker login -u anasra -p dckr_pat_PgNyWyyF8WxlOqe5aLSDHAk9rLI'
-                sh 'docker tag calculator-app anasra/calculator-app:latest'
-                sh 'docker push anasra/calculator-app:latest'
-            }
-        }
-
-        stage('deployment'){
-            steps{
-                script{
-                    def containers = sh(script: 'docker ps -aq', returnStdout: true).trim()
-                    if (containers) {
-                        sh "docker rm -f ${containers}"
-                    } else {
-                        echo "No containers to remove."
+        stage('Push artifact') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
+                        app.push('latest')
                     }
                 }
-                sh 'docker pull anasra/calculator-app:latest'
-                sh 'docker run -d --name test-calculator -p 3000:3000 calculator-app:latest'
             }
         }
 
-        stage('post cleanup'){
-            steps{
+        stage('deployment') {
+            steps {
+                sh 'docker rm -f $(docker ps -aq)'
+                def image = docker.image("${DOCKER_IMAGE_NAME}")
+                def container = image.run('-p 3000:3000 --name calculator-app')
+            }
+        }
+
+        stage('post cleanup') {
+            steps {
+                sh 'sleep 120'
+                sh 'docker rm -f $(docker ps -aq)'
+                sh 'docker rmi $(docker images -q)'
                 sh 'rm -rf *'
+                sh 'rm -rf .[!.]* ..?*'
             }
         }
     }
