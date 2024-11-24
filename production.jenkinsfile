@@ -8,14 +8,15 @@ pipeline {
         stage('deploy prod') {
             steps {
                 sshagent(credentials: [env.SSH_KEY_ID]) {
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}
                     script {
                         // Docker login op de remote host
                         withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
                                     passwordVariable: 'DOCKER_PASSWORD', 
                                     usernameVariable: 'DOCKER_USERNAME')]) {
-                            sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} "echo \\"$DOCKER_PASSWORD\\" | docker login -u \\"$DOCKER_USERNAME\\" --password-stdin"'
+                            sh '"echo \\"$DOCKER_PASSWORD\\" | docker login -u \\"$DOCKER_USERNAME\\" --password-stdin"'
                             // Docker image pull op de remote host
-                            sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} "docker pull anasra/calculator-app:latest"'
+                            sh '"docker pull anasra/calculator-app:latest"'
                         }
                     }
                 }
