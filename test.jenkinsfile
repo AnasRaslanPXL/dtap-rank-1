@@ -41,7 +41,9 @@ pipeline {
         }
 
         stage('Push Artifact') {
-            sh 'docker push anasra/calculator-app:latest'
+            steps{
+                 sh 'docker push anasra/calculator-app:latest'
+            }
         }
 
         stage('Deployment') {
