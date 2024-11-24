@@ -73,17 +73,17 @@ pipeline {
             steps {
                 script{
                     sh '''#!/bin/bash
-                    if [ "$(docker images -q)" ]; then
-                        docker rmi -f $(docker images -q)
-                    else
-                        echo "No images to remove"
-                    fi'''
-
-                    sh '''#!/bin/bash
                     if [ "$(docker ps -qa)" ]; then
                         docker rm -f $(docker ps -qa)
                     else
                         echo "No running containers to remove"
+                    fi'''
+
+                    sh '''#!/bin/bash
+                    if [ "$(docker images -q)" ]; then
+                        docker rmi -f $(docker images -q)
+                    else
+                        echo "No images to remove"
                     fi'''
                 }
                 sh '''
