@@ -13,17 +13,8 @@ pipeline {
                                     passwordVariable: 'DOCKER_PASSWORD', 
                                     usernameVariable: 'DOCKER_USERNAME')]) {
                             sh 'docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"'
-                            sh 'docker pull anasra/calculator-app:latest'
                         }
-                }
-            }
-        }
-        
-        stage('start prod') {
-            steps {
-                sshagent(credentials: [env.SSH_KEY_ID]) {
-                    script {
-                        // SSH-commando's uitvoeren op de externe host
+                        script {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} << EOF
                             # Stop en verwijder alle draaiende containers
@@ -40,12 +31,18 @@ pipeline {
                             else
                                 echo "No images to remove"
                             fi
-
-                            # Start de container
-                            docker run -d -p 80:3000 --name calculator-app anasra/calculator-app:latest
                         EOF
                         """
                     }
+                    sh 'docker pull anasra/calculator-app:latest'
+                }
+            }
+        }
+        
+        stage('start prod') {
+            steps {
+                sshagent(credentials: [env.SSH_KEY_ID]) {
+                    sh 'docker run -d -p 80:3000 --name calculator-app anasra/calculator-app:latest'
                 }
             }
         }
