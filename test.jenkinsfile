@@ -35,15 +35,13 @@ pipeline {
                         env.APP = docker.build(env.DOCKER_IMAGE_NAME)
                     }
                 }
-                sh 'docker image ls' // Bekijk de beschikbare images
+                sh 'docker image ls'
             }
         }
 
         stage('Push artifact') {
             steps {
-                script {
-                    env.APP.push('latest')
-                }
+                sh 'docker push anasra/calculator-app:latest'
             }
         }
 
