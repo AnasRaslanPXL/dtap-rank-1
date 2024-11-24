@@ -58,8 +58,8 @@ pipeline {
             steps {
                 script {
                     sh '''#!/bin/bash
-                    if [ "$(docker ps -q)" ]; then
-                        docker rm -f $(docker ps -q)
+                    if [ "$(docker ps -qa)" ]; then
+                        docker rm -f $(docker ps -qa)
                     else
                         echo "No running containers to remove"
                     fi'''
@@ -81,8 +81,8 @@ pipeline {
                     fi'''
 
                     sh '''#!/bin/bash
-                    if [ "$(docker ps -q)" ]; then
-                        docker rm -f $(docker ps -q)
+                    if [ "$(docker ps -qa)" ]; then
+                        docker rm -f $(docker ps -qa)
                     else
                         echo "No running containers to remove"
                     fi'''
