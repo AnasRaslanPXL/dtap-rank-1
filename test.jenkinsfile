@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS = 'myDockerCreds' // Credentials van Docker hub
         DOCKER_IMAGE_NAME = 'anasra/calculator-app'
         APP = 'startApp'
     }
@@ -40,7 +39,7 @@ pipeline {
         stage('Push artifact') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', env.DOCKER_CREDENTIALS) {
+                    docker.withRegistry('https://index.docker.io/v1/', myDockerCreds) {
                         env.APP.push('latest')
                     }
                 }
