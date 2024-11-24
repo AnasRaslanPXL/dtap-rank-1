@@ -30,7 +30,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
                                 passwordVariable: 'DOCKER_PASSWORD', 
                                 usernameVariable: 'DOCKER_USERNAME')]) {
-                    sh 'docker login -u ${env.DOCKER_USERNAME} -p {env.DOCKER_PASSWORD}'
+                    sh 'docker login -u "DOCKER_USERNAME" -p "DOCKER_PASSWORD"'
                     sh '''
                     docker rmi $(docker images -q) --force || true
                     docker build -t anasra/calculator-app:latest .
