@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build artifact') {
             steps {
-                sh 'sh 'docker rmi $(docker images -q) --force || true'
+                 sh 'docker rmi $(docker images -q) --force || true'
                  script {
                     docker.withRegistry('https://index.docker.io/v1/', 'myDockerCreds') {
                         env.APP = docker.build(env.DOCKER_IMAGE_NAME)
