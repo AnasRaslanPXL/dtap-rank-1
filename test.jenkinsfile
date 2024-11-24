@@ -26,23 +26,22 @@ pipeline {
         }
 
         stage('Build Artifact') {
-            steps {
-                sh '''
-                docker rmi $(docker images -q) --force || true
-                docker build -t anasra/calculator-app:latest .
-                docker image ls
-                '''
-            }
-        }
-
-        stage('Push Artifact') {
-            steps {
+              steps {
                 withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
                                 passwordVariable: 'DOCKER_PASSWORD', 
                                 usernameVariable: 'DOCKER_USERNAME')]) {
                     sh 'docker login -u ${env.DOCKER_USERNAME} -p {env.DOCKER_PASSWORD}'
+                    sh '''
+                    docker rmi $(docker images -q) --force || true
+                    docker build -t anasra/calculator-app:latest .
+                    docker image ls
+                    '''
                 }
             }
+        }
+
+        stage('Push Artifact') {
+            sh 'docker push anasra/calculator-app:latest'
         }
 
         stage('Deployment') {
