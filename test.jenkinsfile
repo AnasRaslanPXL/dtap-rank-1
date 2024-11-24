@@ -1,65 +1,69 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE_NAME = 'anasra/calculator-app:latest'
-    }
     tools {
         nodejs "testenvnode"
     }
   
     stages {
-        stage('cleanup') {
+        stage('Cleanup') {
             steps {
-                sh 'rm -rf *'
-                sh 'rm -rf .[!.]* ..?*'
+                sh '''
+                rm -rf *
+                rm -rf .[!.]* ..?*
+                '''
             }
         }
-        stage('fetch app code') {
+        stage('Fetch App Code') {
             steps {
-                // Get some code from a GitHub repository
                 git branch: 'main', url: 'https://github.com/PXL-2TIN-DevOps-Resources/calculator-app-finished.git'
             }
         }
-        stage('Install dependencies') {
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Build artifact') {
+        stage('Build Artifact') {
             steps {
-                sh 'docker rmi $(docker images -q) --force || true'
-                sh 'docker build -t anasra/calculator-app:latest .'
-                sh 'docker image ls'
+                sh '''
+                docker rmi $(docker images -q) --force || true
+                docker build -t anasra/calculator-app:latest .
+                docker image ls
+                '''
             }
         }
 
-        stage('Push artifact') {
-            withhCredentials([usernamePassword(credentialsId: 'myDockerCreds', passwordVariable: 'myDockerCredsPassword', usernameVariable: 'myDockerCredsUser')]) {
+        stage('Push Artifact') {
             steps {
-                sh 'docker push anasra/calculator-app:latest'
+                withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
+                                passwordVariable: 'DOCKER_PASSWORD', 
+                                usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh 'docker login -u ${env.DOCKER_USERNAME} -p {env.DOCKER_PASSWORD}'
+                }
             }
         }
 
-        stage('deployment') {
+        stage('Deployment') {
             steps {
-                sh 'docker rm -f $(docker ps -aq)'
-                script{
+                sh 'docker rm -f $(docker ps -aq) || true'
+                script {
                     def image = docker.image(env.DOCKER_IMAGE_NAME)
                     image.run('-p 3000:3000 --name calculator-app')
                 }
-                
             }
         }
 
-        stage('post cleanup') {
+        stage('Post Cleanup') {
             steps {
-                sh 'sleep 120'
-                sh 'docker rm -f $(docker ps -aq)'
-                sh 'docker rmi $(docker images -q)'
-                sh 'rm -rf *'
-                sh 'rm -rf .[!.]* ..?*'
+                sh '''
+                sleep 120
+                docker rm -f $(docker ps -aq) || true
+                docker rmi $(docker images -q) || true
+                rm -rf *
+                rm -rf .[!.]* ..?*
+                '''
             }
         }
     }
