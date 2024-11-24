@@ -1,10 +1,62 @@
 pipeline {
     agent any
+    environment {
+        SSH_KEY_ID = 'productionServer'  // De ID van je opgeslagen SSH-sleutel in Jenkins
+        REMOTE_HOST = 'ubuntu@100.28.221.175'  // De gebruiker en host van de externe server
+    }
     stages {
-        stage('dtap production') {
+        stage('deploy prod') {
             steps {
-                echo "good luck..."
+                sshagent(credentials: [env.SSH_KEY_ID]) {
+                    script {
+                        // Docker login op de remote host
+                        withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
+                                    passwordVariable: 'DOCKER_PASSWORD', 
+                                    usernameVariable: 'DOCKER_USERNAME')]) {
+                            sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} "echo \\"$DOCKER_PASSWORD\\" | docker login -u \\"$DOCKER_USERNAME\\" --password-stdin"'
+                            // Docker image pull op de remote host
+                            sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} "docker pull anasra/calculator-app:latest"'
+                        }
+                    }
+                }
             }
+        }
+        
+        stage('start prod') {
+            steps {
+                sshagent(credentials: [env.SSH_KEY_ID]) {
+                    script {
+                        // SSH-commando's uitvoeren op de externe host
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} << EOF
+                            # Stop en verwijder alle draaiende containers
+                            if [ "\$(docker ps -qa)" ]; then
+                                docker stop \$(docker ps -qa)
+                                docker rm -f \$(docker ps -qa)
+                            else
+                                echo "No running containers to remove"
+                            fi
+
+                            # Verwijder alle images
+                            if [ "\$(docker images -q)" ]; then
+                                docker rmi -f \$(docker images -q)
+                            else
+                                echo "No images to remove"
+                            fi
+
+                            # Start de container
+                            docker run -d -p 80:3000 --name calculator-app anasra/calculator-app:latest
+                        EOF
+                        """
+                    }
+                }
+            }
+        }
+        stage('test prod'){
+              sshagent(credentials: [env.SSH_KEY_ID]){
+                   ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}
+                   sh 'curl 100.28.221.175:80' 
+              }
         }
     }
 }
