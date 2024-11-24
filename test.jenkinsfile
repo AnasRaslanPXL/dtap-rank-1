@@ -33,6 +33,7 @@ pipeline {
                 script {
                     env.APP = docker.build(env.DOCKER_IMAGE_NAME)
                 }
+                sh 'docker images ls'
             }
         }
 
