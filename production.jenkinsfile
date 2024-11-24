@@ -1,24 +1,20 @@
 pipeline {
     agent any
     environment {
-        SSH_KEY_ID = 'productionServer'  // De ID van je opgeslagen SSH-sleutel in Jenkins
-        REMOTE_HOST = 'ubuntu@100.28.221.175'  // De gebruiker en host van de externe server
+        SSH_KEY_ID = 'productionServer'
+        REMOTE_HOST = 'ubuntu@100.28.221.175'
     }
     stages {
         stage('deploy prod') {
             steps {
                 sshagent(credentials: [env.SSH_KEY_ID]) {
                     sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}'
-                    script {
-                        // Docker login op de remote host
-                        withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
+                     withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
                                     passwordVariable: 'DOCKER_PASSWORD', 
                                     usernameVariable: 'DOCKER_USERNAME')]) {
-                            sh '"echo \\"$DOCKER_PASSWORD\\" | docker login -u \\"$DOCKER_USERNAME\\" --password-stdin"'
-                            // Docker image pull op de remote host
-                            sh '"docker pull anasra/calculator-app:latest"'
+                            sh 'docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"'
+                            sh 'docker pull anasra/calculator-app:latest'
                         }
-                    }
                 }
             }
         }
