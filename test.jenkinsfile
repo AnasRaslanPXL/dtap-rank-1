@@ -12,6 +12,22 @@ pipeline {
                 rm -rf *
                 rm -rf .[!.]* ..?*
                 '''
+                script{
+                     sh '''#!/bin/bash
+                    if [ "$(docker ps -qa)" ]; then
+                        docker stop $(docker ps -qa)
+                        docker rm -f $(docker ps -qa)
+                    else
+                        echo "No running containers to remove"
+                    fi'''
+
+                    sh '''#!/bin/bash
+                    if [ "$(docker images -q)" ]; then
+                    docker rmi -f $(docker images -q)
+                    else
+                    echo "No images to remove"
+                    fi'''
+                }
             }
         }
         stage('Fetch App Code') {
@@ -31,14 +47,7 @@ pipeline {
                                 passwordVariable: 'DOCKER_PASSWORD', 
                                 usernameVariable: 'DOCKER_USERNAME')]) {
                     sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
-                    script{
-                        sh '''#!/bin/bash
-                    if [ "$(docker images -q)" ]; then
-                        docker rmi -f $(docker images -q)
-                    else
-                        echo "No images to remove"
-                    fi'''
-                    }
+                   
                     sh '''
                     docker build -t anasra/calculator-app:latest .
                     docker image ls
@@ -56,14 +65,6 @@ pipeline {
 
         stage('Deployment') {
             steps {
-                script {
-                    sh '''#!/bin/bash
-                    if [ "$(docker ps -qa)" ]; then
-                        docker rm -f $(docker ps -qa)
-                    else
-                        echo "No running containers to remove"
-                    fi'''
-                }
                 sh 'docker run -d -p 3000:3000 --name calculator-app anasra/calculator-app:latest'
                 sh 'sleep 30'
             }
@@ -74,6 +75,7 @@ pipeline {
                 script{
                     sh '''#!/bin/bash
                     if [ "$(docker ps -qa)" ]; then
+                        docker stop $(docker ps -qa)
                         docker rm -f $(docker ps -qa)
                     else
                         echo "No running containers to remove"
