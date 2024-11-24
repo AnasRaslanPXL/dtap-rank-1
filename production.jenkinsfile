@@ -16,8 +16,6 @@ pipeline {
                         }
                         script {
                         sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} << EOF
-                            # Stop en verwijder alle draaiende containers
                             if [ "\$(docker ps -qa)" ]; then
                                 docker stop \$(docker ps -qa)
                                 docker rm -f \$(docker ps -qa)
@@ -25,13 +23,11 @@ pipeline {
                                 echo "No running containers to remove"
                             fi
 
-                            # Verwijder alle images
                             if [ "\$(docker images -q)" ]; then
                                 docker rmi -f \$(docker images -q)
                             else
                                 echo "No images to remove"
                             fi
-                        EOF
                         """
                     }
                     sh 'docker pull anasra/calculator-app:latest'
