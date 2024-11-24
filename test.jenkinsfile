@@ -30,9 +30,16 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
                                 passwordVariable: 'DOCKER_PASSWORD', 
                                 usernameVariable: 'DOCKER_USERNAME')]) {
-                    sh 'docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"'
+                    sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
+                    script{
+                        sh '''#!/bin/bash
+                    if [ "$(docker images -q)" ]; then
+                        docker rm -f $(docker images -q)
+                    else
+                        echo "No images to remove"
+                    fi'''
+                    }
                     sh '''
-                    docker rmi $(docker images -q) --force || true
                     docker build -t anasra/calculator-app:latest .
                     docker image ls
                     '''
@@ -43,6 +50,7 @@ pipeline {
         stage('Push Artifact') {
             steps{
                  sh 'docker push anasra/calculator-app:latest'
+                 sh 'Image pushed succesfully'
             }
         }
 
@@ -57,15 +65,29 @@ pipeline {
                     fi'''
                 }
                 sh 'docker run -p 3000:3000 --name calculator-app anasra/calculator-app:latest'
+                sh 'sleep 60'
+                sh 'docker stop calculator-app && docker rm -f calculator-app'
             }
         }
 
         stage('Post Cleanup') {
             steps {
+                script{
+                    sh '''#!/bin/bash
+                    if [ "$(docker images -q)" ]; then
+                        docker rm -f $(docker images -q)
+                    else
+                        echo "No images to remove"
+                    fi'''
+
+                    sh '''#!/bin/bash
+                    if [ "$(docker ps -q)" ]; then
+                        docker rm -f $(docker ps -q)
+                    else
+                        echo "No running containers to remove"
+                    fi'''
+                }
                 sh '''
-                sleep 120
-                docker rm -f $(docker ps -aq) || true
-                docker rmi $(docker images -q) || true
                 rm -rf *
                 rm -rf .[!.]* ..?*
                 '''
