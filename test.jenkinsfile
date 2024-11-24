@@ -32,7 +32,7 @@ pipeline {
         stage('Build artifact') {
             steps {
                 script {
-                    environment.APP = docker.build("${DOCKER_IMAGE_NAME}")
+                    environment.APP = docker.build(environment.DOCKER_IMAGE_NAME)
                 }
             }
         }
@@ -40,7 +40,7 @@ pipeline {
         stage('Push artifact') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
+                    docker.withRegistry('https://index.docker.io/v1/', environment.DOCKER_CREDENTIALS) {
                         environment.APP.push('latest')
                     }
                 }
@@ -50,7 +50,7 @@ pipeline {
         stage('deployment') {
             steps {
                 sh 'docker rm -f $(docker ps -aq)'
-                docker.image("${DOCKER_IMAGE_NAME}")
+                def image = docker.image(environment.DOCKER_IMAGE_NAME)
                 image.run('-p 3000:3000 --name calculator-app')
             }
         }
