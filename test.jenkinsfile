@@ -48,11 +48,15 @@ pipeline {
 
         stage('Deployment') {
             steps {
-                sh 'docker rm -f $(docker ps -aq) || true'
                 script {
-                    def image = docker.image(env.DOCKER_IMAGE_NAME)
-                    image.run('-p 3000:3000 --name calculator-app')
+                    sh '''#!/bin/bash
+                    if [ "$(docker ps -q)" ]; then
+                        docker rm -f $(docker ps -q)
+                    else
+                        echo "No running containers to remove"
+                    fi'''
                 }
+                sh 'docker run -p 3000:3000 --name calculator-app anasra/calculator-app:latest'
             }
         }
 
