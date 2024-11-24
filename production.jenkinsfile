@@ -8,7 +8,7 @@ pipeline {
         stage('deploy prod') {
             steps {
                 sshagent(credentials: [env.SSH_KEY_ID]) {
-                    ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}
+                    sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}'
                     script {
                         // Docker login op de remote host
                         withCredentials([usernamePassword(credentialsId: 'myDockerCreds', 
@@ -55,7 +55,7 @@ pipeline {
         }
         stage('test prod'){
               sshagent(credentials: [env.SSH_KEY_ID]){
-                   ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}
+                   sh 'ssh -o StrictHostKeyChecking=no ${REMOTE_HOST}'
                    sh 'curl 100.28.221.175:80' 
               }
         }
