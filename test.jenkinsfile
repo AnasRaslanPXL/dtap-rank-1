@@ -37,7 +37,7 @@ pipeline {
                         env.APP = docker.build(env.DOCKER_IMAGE_NAME)
                     }
                 }
-                sh 'docker images ls' // Bekijk de beschikbare images
+                sh 'docker image ls' // Bekijk de beschikbare images
             }
         }
 
