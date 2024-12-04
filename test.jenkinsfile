@@ -54,12 +54,14 @@ pipeline {
                     docker build -t anasra/calculator-app:latest .
                     docker image ls
                     '''
+                    sh 'docker image rmi anasra/calculator-app:latest'
                 }
             }
         }
 
         stage('Push Artifact') {
             steps{
+                sh 'docker pull anasra/calculator-app:latest'
                  sh 'docker push anasra/calculator-app:latest'
                  echo 'Image pushed successfully'
             }
@@ -67,6 +69,7 @@ pipeline {
 
         stage('Deployment') {
             steps {
+                sh 'docker pull '
                 sh 'docker run -d -p 3000:3000 --name calculator-app anasra/calculator-app:latest'
                 sh 'sleep 30'
             }
