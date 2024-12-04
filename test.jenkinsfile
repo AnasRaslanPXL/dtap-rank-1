@@ -61,7 +61,7 @@ pipeline {
 
         stage('Push Artifact') {
             steps{
-                sh 'docker pull anasra/calculator-app:latest'
+                 sh 'docker pull anasra/calculator-app:latest'
                  sh 'docker push anasra/calculator-app:latest'
                  echo 'Image pushed successfully'
             }
