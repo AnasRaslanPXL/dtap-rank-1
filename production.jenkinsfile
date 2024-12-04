@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         SSH_KEY_ID = 'productionServer'
-        REMOTE_HOST = 'ubuntu@100.28.221.175'
+        REMOTE_HOST = 'ubuntu@3.237.46.191'
     }
     stages {
         stage('deploy prod') {
