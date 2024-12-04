@@ -45,7 +45,7 @@ pipeline {
         stage('test prod'){
             steps{
                   sshagent(credentials: [env.SSH_KEY_ID]){
-                   sh 'curl 3.237.46.191:80 && echo "201 Response"' 
+                   sh 'curl 3.237.46.191:80'
                 }
             }
         }
