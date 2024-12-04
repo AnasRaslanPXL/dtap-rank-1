@@ -46,7 +46,7 @@ pipeline {
             steps{
                   sshagent(credentials: [env.SSH_KEY_ID]){
                    sh 'sleep 50'
-                   sh 'curl 3.237.46.191:80'
+                   sh 'curl http://localhost:80'
                 }
             }
         }
